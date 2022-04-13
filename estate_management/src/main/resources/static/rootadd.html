@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        信息修改
+    </title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="css/main.css" media="all">
+    <script type="text/javascript" src="lib/loading/okLoading.js"></script>
+    <!-- 引入ElementUI样式 -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+<div id="app">
+<div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>超管信息管理</cite></a>
+              <a><cite>{{title}}</cite></a>
+            </span>
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+</div>
+<div class="x-body">
+    <!--element 的form表单-->
+    <el-form :model="root" :rules="rules" ref="rootFormRef" label-width="120px" class="demo-ruleForm">
+        <el-form-item label="超管名称" prop="name">
+            <el-input v-model="root.name" maxlength="50" show-word-limit></el-input>
+        </el-form-item>
+        <el-form-item label="身份证号" prop="idcard">
+            <el-input v-model="root.idcard" maxlength="18" show-word-limit></el-input>
+        </el-form-item>
+        <el-form-item label="联系方式" prop="telephone">
+            <el-input v-model="root.telephone" maxlength="11" show-word-limit></el-input>
+        </el-form-item>
+        <el-form-item label="出生日期" prop="birthday">
+            <el-date-picker
+                    v-model="root.birthday"
+                    type="date"
+                    placeholder="选择日期"
+                    value-format="yyyy-MM-dd">
+            </el-date-picker>
+        </el-form-item>
+        <el-form-item label="性别" prop="sex">
+            <el-radio-group v-model="root.sex">
+                <el-radio label="0">男</el-radio>
+                <el-radio label="1">女</el-radio>
+            </el-radio-group>
+        </el-form-item>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+            <el-input v-model="root.remark" maxlength="200" show-word-limit></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save(); " style="text-align: center">保存</el-button>
+            <el-button @click="clearAll()" style="text-align: center">重置</el-button>
+        </el-form-item>
+    </el-form>
+</div>
+</div>
+<script src="lib/layui/layui.js" charset="utf-8"></script>
+<script src="js/x-layui.js" charset="utf-8"></script>
+<!--导入Vue依赖包-->
+<script src="js/vue.js" charset="utf-8"></script>
+<!-- 引入Element组件库 -->
+<script src="js/index.js"></script>
+<!--导入Axios依赖包-->
+<script src="js/axios.js" charset="utf-8"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el:"#app",
+        data:{
+            title:"修改超管信息",
+            root:{id:""},
+            fileList:[],
+            rules: {
+
+                name: [
+                    { required: true, message: '请输入成员名称', trigger: 'blur' }
+                ],
+                idcard: [
+                    { required: true, message: '请输入身份证号', trigger: 'blur' }
+                ],
+                telephone: [
+                    { required: true, message: '请输入电话号码', trigger: 'blur' }
+                ],
+                birthday: [
+                    { required: true, message: '请输入出生日期', trigger: 'blur' }
+                ],
+                sex: [
+                    { required: true, message: '请输入性别', trigger: 'blur' }
+                ],
+
+                remark: [
+                    { required: true, message: '请输入备注', trigger: 'blur' }
+                ]
+
+            }
+        },
+        methods:{
+            findById(){
+                axios.get("/root/findById?id="+this.root.id).then((res)=>{
+                    this.root = res.data.data;
+
+                });
+            },
+
+            //表达重置
+            clearAll() {
+                this.$refs.rootFormRef.resetFields();
+                if(this.fileList.length>0) {
+                    this.handleRemove();
+                }
+            },
+            save(){
+
+                axios.post("/root/update",this.root).then((res)=>{
+                    if(res.data.flag){
+                        this.$message({
+                            message: res.data.message,
+                            type: 'success'
+                        });
+                    }
+                });
+            },
+
+            getQueryString(name){
+                let reg = `(^|&)${name}=([^&]*)(&|$)`
+                let r = window.location.search.substr(1).match(reg);
+                if (r != null) return unescape(r[2]); return null;
+            }
+        },
+        created:function(){
+            layui.use(['element','layer','form'], function(){
+                $ = layui.jquery;//jquery
+                lement = layui.element();//面包导航
+                layer = layui.layer;//弹出层
+                form = layui.form();
+                okLoading.close($);
+            });
+            //获取父页面传递参数，超管ID
+            this.root.id = this.getQueryString("id");
+            //根据超管ID获取超管对象，进行数据回显
+            if(this.root.id != null && this.root.id != ''){
+                this.title="修改超管信息";
+                this.findById();
+            }
+        }
+    });
+</script>
+<script>
+
+</script>
+</body>
+</html>

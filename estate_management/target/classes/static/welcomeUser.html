@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        欢迎界面
+    </title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="css/main.css" media="all">
+    <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.css" media="all">
+    <link rel="stylesheet" href="lib/bootstrap/js/bootstrap.min.js" media="all">
+</head>
+<body>
+<style type="text/css">
+    legend { display: block; width:100px; border-bottom:0px; font-family: "Microsoft YaHei","Helvetica Neue";}
+    legend a{ color:#666;} legend a:hover{ text-decoration:none;}
+    .layui-table{ font-family: "Microsoft YaHei","Helvetica Neue";}
+</style>
+<div class="x-body">
+    <a class="layui-btn layui-btn-lg" style="line-height:2.5em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+    <blockquote class="layui-elem-quote">
+        欢迎使用小区物业管理系统！
+    </blockquote>
+
+    <fieldset class="layui-elem-field layui-field-title site-title">
+        <legend><a name="default">信息统计</a></legend>
+    </fieldset>
+
+    <!--相关统计-->
+    <div class="row">
+        <div class="col-sm-4">
+            <section class="panel">
+                <div class="panel-heading">最近一周的活动</div>
+                <div class="x-body" id="app">
+                    <table class="layui-table">
+                        <thead>
+                        <tr>
+                            <th>
+                                活动标题
+                            </th>
+                            <th>
+                                状态
+                            </th>
+
+                        </tr>
+                        </thead>
+                        <tbody id="x-img">
+                        <tr v-for="(activity,index) in activityList">
+                            <td >{{activity.title}}</td>
+                            <td class="td-status">
+                <span :class="activity.status ==0?'layui-bg-blue': 'layui-bg-green'">
+                {{activity.status ==0?'有效':'过期'}}
+                </span><!--加 ：就可以使用vue 属性-->
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+        <div class="col-sm-4">
+            <section class="panel">
+                <div class="panel-heading">最近一周的报修</div>
+                <div class="x-body" id="appR">
+                    <table class="layui-table">
+                        <thead>
+                        <tr>
+                            <th>
+                                报修描述
+                            </th>
+                            <th>
+                                报修处理结果
+                            </th>
+                            <th>
+                                状态
+                            </th>
+
+                        </tr>
+                        </thead>
+                        <tbody id="x-imgR">
+                        <tr v-for="(repair,index) in repairList">
+                            <td >{{repair.description}}</td>
+                            <td >{{repair.result}}</td>
+                            <td class="td-status">
+               <span class="layui-bg-blue" v-if="repair.status==0">
+               待处理
+                </span>
+                <span class="layui-bg-green" v-else-if="repair.status==1">
+               正在处理
+                </span>
+                <span class="layui-bg-gray" v-else>
+              已处理
+                </span><!--加 ：就可以使用vue 属性-->
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+        <div class="col-sm-4">
+        <section class="panel">
+            <div class="panel-heading">最近一周的投诉</div>
+            <div class="x-body" id="appC">
+                <table class="layui-table">
+                    <thead>
+                    <tr>
+                        <th>
+                            投诉描述
+                        </th>
+                        <th>
+                            投诉处理结果
+                        </th>
+                        <th>
+                            状态
+                        </th>
+
+                    </tr>
+                    </thead>
+                    <tbody id="x-imgC">
+                    <tr v-for="(complaint,index) in complaintList">
+                        <td >{{complaint.description}}</td>
+                        <td >{{complaint.result}}</td>
+                        <td class="td-status">
+                <span class="layui-bg-blue" v-if="complaint.status==0">
+               待处理
+                </span>
+               <span class="layui-bg-green" v-else-if="complaint.status==1">
+               正在处理
+                </span>
+                <span class="layui-bg-gray" v-else>
+              已处理
+                </span><!--加 ：就可以使用vue 属性-->
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    </div>
+</div>
+<script src="lib/layui/layui.js" charset="utf-8"></script>
+<script src="js/jquery.min.js"></script>
+<script src="js/echarts.min.js"></script>
+<script src="js/x-layui.js" charset="utf-8"></script>
+<!--js脚本一般放在页面尾部-->
+<!--Vue js脚本 -->
+<script src="js/vue.js" charset="utf-8"></script>
+<!--引入ElementUI组件库-->
+<script src="js/index.js" charset="utf-8"></script>
+<!--引入Axios js脚本-->
+<script src="js/axios.js" charset="utf-8"></script>
+<!--引入时间插件包Moment js-->
+<script src="js/moment.min.js" charset="utf-8"></script>
+
+<script>
+    var app =new Vue({
+        el:"#app",//声明当前Vue在页面的作用域
+        data:{
+            checkedIDs:[],
+            activityList:[],
+            selectDate:['',''],
+            searchMap:{"startTime":"","endTime":"","title":"","pageNum":1,"pageSize":10}
+
+        },
+
+        //时间区间发生改变，searchMap中时间区间条件也要变化
+        methods:{
+
+            /*分页条件查询活动列表*/
+            search(){
+                const end = new Date();
+                const start = new Date();
+                start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                end.setTime(end.getTime());
+                this.searchMap.startTime=this.dateFormat(start);
+                this.searchMap.endTime=this.dateFormat(end);
+                axios.post("/activity/search",this.searchMap).then((res)=>{
+                    app.activityList = res.data.data;
+                    app.total=res.data.total;
+                });
+            },
+
+
+
+            //日期格式化方法
+            /*date 要进行格式化的日期，format 格式化的样式*/
+            dateFormat(date,format){
+                //默认的格式化字符串年月日时分秒YYYY-MM-DD
+                if (format==null||format==''){
+                    format ="YYYY-MM-DD"
+                }
+                return moment(date).utcOffset(960).format(format);//调整偏移量
+            }
+        },
+        created:function () {//Vue 生命周期方法，加载页面时会执行该方法
+            layui.use(['laydate','element','laypage','layer'], function(){
+                $ = layui.jquery;//jquery
+                layer = layui.layer;//弹出层
+                okLoading.close($);
+                //以上模块根据需要引入
+
+                layer.ready(function(){ //为了layer.ext.js加载完毕再执行
+                    layer.photos({
+                        photos: '#x-img'
+
+                    });
+                });
+            });
+            //初始化页面获取活动列表信息
+            this.search();
+        }
+    });
+
+</script>
+<script>
+    var appR =new Vue({
+        el:"#appR",//声明当前Vue在页面的作用域
+        data:{
+            checkedIDs:[],
+            repairList:[],
+            searchMap:{"startTime":"","endTime":"","ownerName":"","pageNum":1,"pageSize":10}
+
+        },
+
+        //时间区间发生改变，searchMap中时间区间条件也要变化
+        methods:{
+
+            /*分页条件查询活动列表*/
+            search(){
+                const end = new Date();
+                const start = new Date();
+                start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                end.setTime(end.getTime());
+                this.searchMap.startTime=this.dateFormat(start);
+                this.searchMap.endTime=this.dateFormat(end);
+                let user = sessionStorage.getItem("op");
+                this.searchMap.ownerName=JSON.parse(user).name;
+                axios.post("/repair/search",this.searchMap).then((res)=>{
+                    appR.repairList = res.data.data;
+                    appR.total=res.data.total;
+                });
+            },
+
+
+
+            //日期格式化方法
+            /*date 要进行格式化的日期，format 格式化的样式*/
+            dateFormat(date,format){
+                //默认的格式化字符串年月日时分秒YYYY-MM-DD
+                if (format==null||format==''){
+                    format ="YYYY-MM-DD"
+                }
+                return moment(date).utcOffset(+1440).format(format);//调整偏移量
+            }
+        },
+        created:function () {//Vue 生命周期方法，加载页面时会执行该方法
+            layui.use(['laydate','element','laypage','layer'], function(){
+                $ = layui.jquery;//jquery
+                layer = layui.layer;//弹出层
+                okLoading.close($);
+                //以上模块根据需要引入
+
+                layer.ready(function(){ //为了layer.ext.js加载完毕再执行
+                    layer.photos({
+                        photos: '#x-imgR'
+
+                    });
+                });
+            });
+            //初始化页面获取活动列表信息
+            this.search();
+        }
+    });
+
+</script>
+<script>
+    var appC =new Vue({
+        el:"#appC",//声明当前Vue在页面的作用域
+        data:{
+            checkedIDs:[],
+            complaintList:[],
+            searchMap:{"startTime":"","endTime":"","ownerName":"","pageNum":1,"pageSize":10}
+
+        },
+
+        //时间区间发生改变，searchMap中时间区间条件也要变化
+        methods:{
+
+            /*分页条件查询活动列表*/
+            search(){
+                const end = new Date();
+                const start = new Date();
+                start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                end.setTime(end.getTime());
+                this.searchMap.startTime=this.dateFormat(start);
+                this.searchMap.endTime=this.dateFormat(end);
+                let userC = sessionStorage.getItem("op");
+                this.searchMap.ownerName=JSON.parse(userC).name;
+                axios.post("/complaint/search",this.searchMap).then((res)=>{
+                    appC.complaintList = res.data.data;
+                    appC.total=res.data.total;
+                });
+            },
+
+
+
+            //日期格式化方法
+            /*date 要进行格式化的日期，format 格式化的样式*/
+            dateFormat(date,format){
+                //默认的格式化字符串年月日时分秒YYYY-MM-DD
+                if (format==null||format==''){
+                    format ="YYYY-MM-DD"
+                }
+                return moment(date).utcOffset(+1440).format(format);//调整偏移量
+            }
+        },
+        created:function () {//Vue 生命周期方法，加载页面时会执行该方法
+            layui.use(['laydate','element','laypage','layer'], function(){
+                $ = layui.jquery;//jquery
+                layer = layui.layer;//弹出层
+                okLoading.close($);
+                //以上模块根据需要引入
+
+                layer.ready(function(){ //为了layer.ext.js加载完毕再执行
+                    layer.photos({
+                        photos: '#x-imgC'
+
+                    });
+                });
+            });
+            //初始化页面获取活动列表信息
+            this.search();
+        }
+    });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        收费添加
+    </title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="css/main.css" media="all">
+    <script type="text/javascript" src="lib/loading/okLoading.js"></script>
+    <!-- 引入ElementUI样式 -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+<div id="app">
+<div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>收费管理</cite></a>
+              <a><cite>{{title}}</cite></a>
+            </span>
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+</div>
+<div class="x-body">
+    <!--element 的form表单-->
+    <el-form :model="charge" :rules="rules" ref="chargeFormRef" label-width="120px" class="demo-ruleForm">
+
+        <el-form-item label="承办人名称" prop="contractor">
+        <el-input v-model="charge.contractor" maxlength="50" show-word-limit readonly="ture"></el-input>
+    </el-form-item>
+        <el-form-item label="业主ID" prop="ownerId">
+            <el-input v-model="charge.ownerId" maxlength="11" show-word-limit readonly="ture"></el-input>
+        </el-form-item>
+        <el-form-item label="业主姓名" prop="ownerName">
+            <el-input v-model="charge.ownerName" maxlength="50" show-word-limit readonly="ture"></el-input>
+        </el-form-item>
+        <el-form-item label="联系电话" prop="telephone">
+            <el-input v-model="charge.telephone" maxlength="50" show-word-limit readonly="ture"></el-input>
+        </el-form-item>
+        <el-form-item label="收费项目明细" prop="detail">
+            <el-input v-model="charge.detail" maxlength="500" show-word-limit id="detail"></el-input>
+        </el-form-item>
+        <el-form-item label="应收金额(￥)" prop="payMoney">
+            <el-input-number :controls="false"  :precision="2" :min='0' v-model="charge.payMoney" id="payMoney"></el-input-number>
+        </el-form-item>
+
+        <el-form-item>
+            <el-button type="primary" @click="save(); " style="text-align: center">保存</el-button>
+            <el-button @click="clearAll()" style="text-align: center">重置</el-button>
+        </el-form-item>
+    </el-form>
+</div>
+</div>
+<script src="lib/layui/layui.js" charset="utf-8"></script>
+<script src="js/x-layui.js" charset="utf-8"></script>
+<!--导入Vue依赖包-->
+<script src="js/vue.js" charset="utf-8"></script>
+<!-- 引入Element组件库 -->
+<script src="js/index.js"></script>
+<!--导入Axios依赖包-->
+<script src="js/axios.js" charset="utf-8"></script>
+
+<script type="text/javascript">
+    var app = new Vue({
+        el:"#app",
+        data:{
+            title:"添加缴费信息",
+            charge:{id:"",contractor:"",ownerId:"",ownerName:"",telephone:""},
+            fileList:[],
+            rules: {
+                detail: [
+                    { required: true, message: '请输入收费项目明细', trigger: 'blur' },
+                ],
+                contractor: [
+                    { required: true, message: '请输入承办人名称', trigger: 'blur' },
+                ],
+                ownerId: [
+                    { required: true, message: '请输入业主ID', trigger: 'blur' },
+                ],
+                ownerName: [
+                    { required: true, message: '请输入业主姓名', trigger: 'blur' },
+                ],
+                telephone: [
+                    { required: true, message: '请输入联系电话', trigger: 'blur' },
+                ],
+                payMoney: [
+                    { required: true, message: '请输入应收金额(￥)', trigger: 'blur' },
+                ]
+
+            }
+        },
+        methods:{
+            findById(){
+                axios.get("/charge/findById?id="+this.charge.id).then((res)=>{
+                    this.charge = res.data.data;
+
+                });
+            },
+
+            //表达重置
+            clearAll() {
+                this.$refs.chargeFormRef.resetFields();
+                if(this.fileList.length>0) {
+                    this.handleRemove();
+                }
+            },
+            save(){
+                let detail = $("#detail").val();
+                if (!detail) {
+                    alert("请输入收费项目明细")
+                    $("#detail").focus();
+                    return;
+                }
+                let payMoney = this.charge.payMoney;
+                if (!payMoney) {
+                    alert("请输入应收金额(￥)")
+                    $("#payMoney").focus();
+                    return;
+                }
+                var method = "";
+                if(this.charge.id != null){
+                    method = "update"
+                }else{
+                    method = "add"
+                }
+                axios.post("/charge/"+method,this.charge).then((res)=>{
+                    if(res.data.flag){
+                        this.$message({
+                            message: res.data.message,
+                            type: 'success'
+                        });
+                    }
+                });
+            },
+
+            getQueryString(name){
+                let reg = `(^|&)${name}=([^&]*)(&|$)`
+                let r = window.location.search.substr(1).match(reg);
+                if (r != null) return unescape(r[2]); return null;
+            }
+        },
+        created:function(){
+            layui.use(['element','layer','form'], function(){
+                $ = layui.jquery;//jquery
+                lement = layui.element();//面包导航
+                layer = layui.layer;//弹出层
+                form = layui.form();
+                okLoading.close($);
+            });
+            //获取父页面传递参数，收费ID
+            this.charge.id = this.getQueryString("id");
+            //根据收费ID获取收费对象，进行数据回显
+            if(this.charge.id != null && this.charge.id != ''){
+                this.title="修改缴费";
+                this.findById();
+            }
+            else {
+                let charge = sessionStorage.getItem("charge");
+                let user = sessionStorage.getItem("op");
+                this.charge.contractor=JSON.parse(user).name;
+                this.charge.ownerName=JSON.parse(charge).name;
+                this.charge.ownerId = JSON.parse(charge).id;
+                this.charge.telephone = JSON.parse(charge).telephone;
+                this.charge.status="0";
+
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

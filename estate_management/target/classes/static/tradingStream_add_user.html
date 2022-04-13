@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        收费流水添加
+    </title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="css/main.css" media="all">
+    <script type="text/javascript" src="lib/loading/okLoading.js"></script>
+    <!-- 引入ElementUI样式 -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+<div id="app">
+    <div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>收费管理</cite></a>
+              <a><cite>{{title}}</cite></a>
+            </span>
+        <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+    </div>
+    <div class="x-body">
+        <!--element 的form表单-->
+        <el-form :model="tradingStream" :rules="rules" ref="tradingStreamFormRef" label-width="120px" class="demo-ruleForm">
+            <el-form-item label="收费项目ID" prop="chargeId">
+                <el-input v-model="tradingStream.chargeId"readonly="ture" maxlength="11" show-word-limit></el-input>
+            </el-form-item>
+            <el-form-item label="业主ID" prop="ownerId" >
+                <el-input v-model="tradingStream.ownerId" readonly="ture" maxlength="11" show-word-limit></el-input>
+            </el-form-item>
+            <el-form-item label="业主姓名" prop="ownerName" >
+                <el-input v-model="tradingStream.ownerName" readonly="ture" maxlength="50" show-word-limit></el-input>
+            </el-form-item>
+            <el-form-item label="联系电话" prop="telephone" >
+                <el-input v-model="tradingStream.telephone" readonly="ture" maxlength="11" show-word-limit></el-input>
+            </el-form-item>
+            <el-form-item label="收费项目明细" prop="detail">
+                <el-input v-model="tradingStream.detail"readonly="ture" maxlength="500" show-word-limit></el-input>
+            </el-form-item>
+            <el-form-item label="所收金额(￥)" prop="payMoney">
+                <el-input-number :controls="false"  :precision="2" :min='0'  v-model="tradingStream.payMoney" readonly="ture"></el-input-number>
+            </el-form-item>
+            </el-form-item>
+           <div>
+               <img style="height: 250px ;width: 300px;align-items: center" src="/images/pay.PNG" />
+           </div>
+            <el-form-item>
+                <el-button type="primary" @click="save(); " style="text-align: center">我已成功付款</el-button>
+            </el-form-item>
+        </el-form>
+    </div>
+
+</div>
+<script src="lib/layui/layui.js" charset="utf-8"></script>
+<script src="js/x-layui.js" charset="utf-8"></script>
+<!--导入Vue依赖包-->
+<script src="js/vue.js" charset="utf-8"></script>
+<!-- 引入Element组件库 -->
+<script src="js/index.js"></script>
+<!--导入Axios依赖包-->
+<script src="js/axios.js" charset="utf-8"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el:"#app",
+        data:{
+            title:"添加交易流水",
+            tradingStream:{chargeId:"",ownerName:"",ownerId:"",payMoney: "",detail:""},
+            fileList:[],
+            rules: {
+                chargeId: [
+                    { required: true, message: '请输入收费项目ID', trigger: 'blur' },
+                ],
+                ownerId: [
+                    { required: true, message: '请输入业主ID', trigger: 'blur' },
+                ],
+                ownerName: [
+                    { required: true, message: '请输入业主姓名', trigger: 'blur' },
+                ],
+                telephone: [
+                    { required: true, message: '请输入联系电话', trigger: 'blur' },
+                ],
+                detail: [
+                    { required: true, message: '请输入收费项目明细', trigger: 'blur' },
+                ],
+                payMoney: [
+                    { required: true, message: '请输入应收金额(￥)', trigger: 'blur' },
+                ]
+
+
+            }
+        },
+        methods:{
+
+
+            save(){
+                this.admin_stop(this.tradingStream.chargeId);
+                axios.post("/tradingStream/add",this.tradingStream).then((res)=>{
+                    if(res.data.flag){
+                        this.$message({
+                            message: res.data.message,
+                            type: 'success'
+                        });
+                    }
+                });
+
+
+                },
+            /*已缴费*/
+            admin_stop(id){
+                layer.confirm('确认已缴费了吗？',function(index){
+                    //往后台发送请求把收费状态改为已缴费
+                    axios.get("/charge/updateStatus/1/"+id).then((res)=>{
+                        if(res.data.flag){
+                            layer.msg('已缴费!',{icon: 6,time:1000});
+                        }
+                        app.search();
+                    })
+                });
+            },
+
+            getQueryString(name){
+                let reg = `(^|&)${name}=([^&]*)(&|$)`
+                let r = window.location.search.substr(1).match(reg);
+                if (r != null) return unescape(r[2]); return null;
+            }
+        },
+        created:function(){
+            layui.use(['element','layer','form'], function(){
+                $ = layui.jquery;//jquery
+                lement = layui.element();//面包导航
+                layer = layui.layer;//弹出层
+                form = layui.form();
+                okLoading.close($);
+            });
+            //获取父页面传递参数，收费ID
+            let user = sessionStorage.getItem("op");
+            let charge = sessionStorage.getItem("ch");
+            this.tradingStream.ownerName=JSON.parse(user).name;
+            this.tradingStream.chargeId = JSON.parse(charge).id;
+           this.tradingStream.payMoney=JSON.parse(charge).money;
+            this.tradingStream.ownerId = JSON.parse(charge).ownerId;
+            this.tradingStream.detail = JSON.parse(charge).detail;
+            this.tradingStream.telephone = JSON.parse(charge).telephone;
+        }
+    });
+</script>
+<script>
+
+</script>
+</body>
+</html>

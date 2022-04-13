@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        添加房产信息
+    </title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="css/main.css" media="all">
+    <script type="text/javascript" src="lib/loading/okLoading.js"></script>
+    <!-- 引入ElementUI样式 -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+<div id="app">
+<div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>房产管理</cite></a>
+              <a><cite>{{title}}</cite></a>
+            </span>
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+</div>
+<div class="x-body">
+    <!--element 的form表单-->
+    <el-form :model="home" :rules="rules" ref="homeFormRef" label-width="120px" class="demo-ruleForm">
+        </el-form-item>
+        <el-form-item label="楼栋Id" prop="buildingId">
+            <el-input v-model="home.buildingId" readonly="ture" maxlength="11" show-word-limit></el-input>
+        </el-form-item>
+        <el-form-item label="楼栋名称" prop="buildingName">
+            <el-input v-model="home.buildingName" readonly="ture" maxlength="50" show-word-limit></el-input>
+        </el-form-item>
+        <el-form-item label="房产编码" prop="code">
+            <el-input v-model="home.code" maxlength="50" show-word-limit id="code"></el-input>
+        </el-form-item>
+        <el-form-item label="房产名称" prop="name">
+            <el-input v-model="home.name" maxlength="50" show-word-limit id="name"></el-input>
+        </el-form-item>
+        <el-form-item label="房间数" prop="roomNum">
+            <el-input v-model="home.roomNum" maxlength="3" show-word-limit id="roomNum"></el-input>
+        </el-form-item>
+        <el-form-item label="单元" prop="unit">
+            <el-input v-model="home.unit" maxlength="10" show-word-limit id="unit"></el-input>
+        </el-form-item>
+        <el-form-item label="楼层" prop="floor">
+            <el-input v-model="home.floor" maxlength="3" show-word-limit id="floor"></el-input>
+        </el-form-item>
+        <el-form-item label="描述" prop="description">
+            <el-input v-model="home.description" maxlength="500" show-word-limit></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="save(); " style="text-align: center">保存</el-button>
+            <el-button @click="clearAll()" style="text-align: center">重置</el-button>
+        </el-form-item>
+    </el-form>
+</div>
+</div>
+<script src="lib/layui/layui.js" charset="utf-8"></script>
+<script src="js/x-layui.js" charset="utf-8"></script>
+<!--导入Vue依赖包-->
+<script src="js/vue.js" charset="utf-8"></script>
+<!-- 引入Element组件库 -->
+<script src="js/index.js"></script>
+<!--导入Axios依赖包-->
+<script src="js/axios.js" charset="utf-8"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el:"#app",
+        data:{
+            title:"添加楼栋",
+            home:{id:"",buildingId:"",buildingName:""},
+            fileList:[],
+            rules: {
+                buildingId: [
+                    { required: true, message: '请输入所属楼栋ID', trigger: 'blur' }
+                ],
+                buildingName: [
+                    { required: true, message: '请输入所属楼栋名称', trigger: 'blur' }
+                ],
+                code: [
+                    { required: true, message: '请输入房产编码', trigger: 'blur' }
+                ],
+                name: [
+                    { required: true, message: '请输入房产名称', trigger: 'blur' }
+                ],
+                roomNum: [
+                    { required: true, message: '请输入房产房间号', trigger: 'blur' }
+                ],
+                unit: [
+                    { required: true, message: '请输入房产单元', trigger: 'blur' }
+                ],
+                floor: [
+                    { required: true, message: '请输入房产楼层', trigger: 'blur' }
+                ],
+                description: [
+                    { required: true, message: '请输入房产描述信息', trigger: 'blur' }
+                ]
+
+            }
+        },
+        methods:{
+            findById(){
+                axios.get("/home/findById?id="+this.home.id).then((res)=>{
+                    this.home = res.data.data;
+
+                });
+            },
+
+            //表达重置
+            clearAll() {
+                this.$refs.homeFormRef.resetFields();
+                if(this.fileList.length>0) {
+                    this.handleRemove();
+                }
+            },
+            save(){
+                let code = $("#code").val();
+                if (!code) {
+                    alert("请输入房产编码")
+                    $("#code").focus();
+                    return;
+                }
+                let name = $("#name").val();
+                if (!name) {
+                    alert("请输入房产名称")
+                    $("#name").focus();
+                    return;
+                }
+                let roomNum = $("#roomNum").val();
+                if (!roomNum) {
+                    alert("请输入房产房间号")
+                    $("#roomNum").focus();
+                    return;
+                }
+                let unit = $("#unit").val();
+                if (!unit) {
+                    alert("请输入房产单元")
+                    $("#unit").focus();
+                    return;
+                }
+                let floor = $("#floor").val();
+                if (!floor) {
+                    alert("请输入房产楼层")
+                    $("#floor").focus();
+                    return;
+                }
+
+                var method = "";
+                if(this.home.id != null){
+                    method = "update"
+                }else{
+                    method = "add"
+
+                }
+                axios.post("/home/"+method,this.home).then((res)=>{
+                    if(res.data.flag){
+                        this.$message({
+                            message: res.data.message,
+                            type: 'success'
+                        });
+                    }
+                });
+            },
+
+
+            getQueryString(name){
+                let reg = `(^|&)${name}=([^&]*)(&|$)`
+                let r = window.location.search.substr(1).match(reg);
+                if (r != null) return unescape(r[2]); return null;
+            }
+        },
+        created:function(){
+            layui.use(['element','layer','form'], function(){
+                $ = layui.jquery;//jquery
+                lement = layui.element();//面包导航
+                layer = layui.layer;//弹出层
+                form = layui.form();
+                okLoading.close($);
+            });
+            //获取父页面传递参数，房产ID
+            this.home.id = this.getQueryString("id");
+            //根据房产ID获取房产对象，进行数据回显
+            if(this.home.id != null && this.home.id != ''){
+                this.title="修改楼栋";
+                this.findById();
+            }
+            else {
+                let bu = sessionStorage.getItem("bu");
+                this.home.buildingName=JSON.parse(bu).name;
+                this.home.buildingId = JSON.parse(bu).id;
+
+            }
+        }
+    });
+</script>
+<script>
+
+</script>
+</body>
+</html>
